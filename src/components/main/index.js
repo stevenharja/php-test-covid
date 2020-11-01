@@ -1,6 +1,10 @@
 import React from "react";
-import { Container } from "./styles/main";
+import { Container, Content } from "./styles/main";
 
 export default function Main({ children, ...restProps }) {
-  return <Container>{children}</Container>;
+  return <Container {...restProps}>{children}</Container>;
 }
+
+Main.Content = function MainContent({ children, ...restProps }) {
+  return <Content {...restProps}>{children}</Content>;
+};

@@ -1,13 +1,14 @@
 import styled from "styled-components";
 
-export const Select = styled.select`
-  text-transform: uppercase;
-  font-family: inherit;
+export const File = styled.input`
+  display: none;
+`;
+
+export const Label = styled.label`
+  border: 1px solid #333333;
+  padding: 0.5rem;
   border-radius: 100px;
   cursor: pointer;
-  padding: 1rem;
-  margin: 1rem;
-  font-weight: 700;
   transition: all 0.2s;
 
   &:hover {
@@ -16,5 +17,3 @@ export const Select = styled.select`
     color: white;
   }
 `;
-
-export const Option = styled.option``;
