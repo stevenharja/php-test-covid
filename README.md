@@ -1,6 +1,6 @@
 # Using the application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). This is the application used for PHP Full Stack Developer role test, and below are the guidelines to using the application.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app). This is the application used for PHP Full Stack Developer role test, and below are the guidelines to using the application. **Make sure to install all the required packages before using the application: npm i / npm install**
 
 ## Preparation Before Using The Application
 
