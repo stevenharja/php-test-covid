@@ -13,6 +13,7 @@ https://www.npmjs.com/package/papaparse
 https://styled-components.com/
 */
 
+// API links
 const GET_API_PATH = "http://localhost/php-test-covid/src/api/getData.php";
 const POST_CSV_API_PATH =
   "http://localhost/php-test-covid/src/api/sendCsvData.php";
@@ -32,6 +33,7 @@ export default class App extends Component {
     selectedField: "active",
     dbData: null,
     dbHeader: null,
+    useUploadedFile: false,
   };
 
   // Parses the file being uploaded into JSON format. (Only accepts csv)
@@ -51,6 +53,7 @@ export default class App extends Component {
     });
   };
 
+  // Function to display chart based on the dropdown menu supplied in the select container.
   displayChart = (e) => {
     e.preventDefault();
     this.setState({ selectedField: e.target.value });
@@ -87,8 +90,7 @@ export default class App extends Component {
   };
 
   // Calls in the API for the POST request
-  sendDataToDb = async (event) => {
-    event.preventDefault();
+  sendDataToDb = async () => {
     this.setState({ dbData: null });
     if (this.state.csvData) {
       await axios({
@@ -117,11 +119,19 @@ export default class App extends Component {
         }
       });
       // Get all possible columns from the first element of the array.
-      const dbHeader = Object.keys(dbData[0]);
-      this.setState({ dbData, dbHeader });
+      if (dbData.length) {
+        const dbHeader = Object.keys(dbData[0]);
+        this.setState({ dbData, dbHeader });
+      }
     });
   };
 
+  doUseLocalFile = () => {
+    const currentState = this.state.useUploadedFile;
+    this.setState({ useUploadedFile: !currentState });
+  };
+
+  // When the component is mounted, retrieve the database from sql.
   async componentDidMount() {
     await this.getDataFromDb();
   }
@@ -130,24 +140,35 @@ export default class App extends Component {
     let selectInput;
     let chart;
     let table;
-    if (this.state.dbData) {
-      selectInput = (
-        <SelectInputContainer
-          options={this.state.fields}
-          changed={this.displayChart}
+    let chartData;
+    let chartTitle;
+
+    // If user requests to use local file, then prioritize that
+    if (this.state.useUploadedFile) {
+      chartData = this.getChartData(
+        this.state.csvData,
+        this.state.selectedField
+      );
+      chartTitle = this.getChartTitle(this.state.selectedField);
+    } else if (this.state.dbData) {
+      // Else just use the database data.
+      chartData = this.getChartData(
+        this.state.dbData,
+        this.state.selectedField
+      );
+      chartTitle = this.getChartTitle(this.state.selectedField);
+      table = (
+        <DataTable
+          title="Data of COVID-19 Based on LGA"
+          dataSent={this.state.dbData}
+          header={["LGA", "population"]}
+          apiUrl={POST_SINGLE_DATA_PATH}
         />
       );
     }
 
-    // If an option is selected and there's a csv file
-    if (this.state.selectedField && this.state.dbData) {
-      const chartData = this.getChartData(
-        this.state.dbData,
-        this.state.selectedField
-      );
-      const chartTitle = this.getChartTitle(this.state.selectedField);
-
-      // After retrieving chart data, if there is no data (for example if there's 0 cases in COVID, then do not display chart)
+    if (chartData && chartTitle) {
+      // After retrieving chart data, if there is no data (for example if there's 0 cases in COVID, then do not display chart and options)
       if (chartData.length > 0) {
         const options = {
           chart: {
@@ -176,9 +197,42 @@ export default class App extends Component {
               data: chartData,
             },
           ],
+          responsive: {
+            rules: [
+              {
+                condition: {
+                  maxWidth: 500,
+                },
+                chartOptions: {
+                  plotOptions: {
+                    pie: {
+                      size: "165%",
+                      dataLabels: {
+                        enabled: false,
+                      },
+                      showInLegend: true,
+                    },
+                  },
+                },
+              },
+            ],
+          },
         };
-        chart = <HighchartsReact highcharts={Highcharts} options={options} />;
+        chart = (
+          <HighchartsReact
+            highcharts={Highcharts}
+            options={options}
+            containerProps={{ style: { height: "100%" } }}
+          />
+        );
+        selectInput = (
+          <SelectInputContainer
+            options={this.state.fields}
+            changed={this.displayChart}
+          />
+        );
       } else {
+        // If there are no data points to place, then do not create the chart but rather display text.
         chart = (
           <div>
             The data has a total of 0 possible points to plot, which means that
@@ -188,43 +242,36 @@ export default class App extends Component {
       }
     }
 
-    if (this.state.dbData) {
-      table = (
-        <DataTable
-          title="Data of COVID-19 Based on LGA"
-          dataSent={this.state.dbData}
-          header={["LGA", "population"]}
-          apiUrl={POST_SINGLE_DATA_PATH}
-        />
-      );
-    }
-
     return (
-      <React.Fragment>
-        <Main>
-          <HeaderContainer>
-            <form onSubmit={this.sendDataToDb}>
-              <FileInput
-                name="fileInput"
-                labelContent="Upload the LGA CSV here"
-                accept=".csv"
-                onChange={this.showFile}
-              />
-              <SubmitButton
-                type="submit"
-                disabled={this.state.csvData ? false : true}
-              >
-                Submit File To Database
-              </SubmitButton>
-            </form>
-          </HeaderContainer>
-          <Main.Content>
-            {selectInput}
-            {chart}
-            {table}
-          </Main.Content>
-        </Main>
-      </React.Fragment>
+      <Main>
+        <HeaderContainer>
+          <FileInput
+            name="fileInput"
+            labelContent="Upload the LGA CSV here"
+            accept=".csv"
+            onChange={this.showFile}
+          />
+          <SubmitButton
+            disabled={this.state.csvData ? false : true}
+            onClick={this.sendDataToDb}
+          >
+            Submit File To Database
+          </SubmitButton>
+          <SubmitButton
+            disabled={this.state.csvData ? false : true}
+            onClick={this.doUseLocalFile}
+          >
+            {this.state.useUploadedFile
+              ? "Return To Previous Data"
+              : "Show Local Data To Chart"}
+          </SubmitButton>
+        </HeaderContainer>
+        <Main.Content>
+          {selectInput}
+          <Main.ChartContainer>{chart}</Main.ChartContainer>
+          <Main.TableContainer>{table}</Main.TableContainer>
+        </Main.Content>
+      </Main>
     );
   }
 }

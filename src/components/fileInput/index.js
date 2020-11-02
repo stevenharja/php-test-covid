@@ -1,6 +1,7 @@
 import React from "react";
 import { File, Label } from "./styles/fileInput";
 
+// Custom file input component, with label to replace the default file input.
 export default function FileInput({
   children,
   name,

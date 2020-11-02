@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import MaterialTable from "material-table";
 import axios from "axios";
 
+// Transforms a header which contains an array of strings to an object for material-table
+// Ex: "population" => {title: "Population", field: "population"}
 const transformHeader = (header) => {
   let transformedHeader = [];
   header.forEach((element) => {
@@ -19,6 +21,7 @@ export default function DataTable({
   apiUrl,
   ...restProps
 }) {
+  // Using hooks to manage state of table changes in the front-end.
   const [data, setData] = useState(dataSent);
   const columns = transformHeader(header);
   return (
@@ -26,8 +29,24 @@ export default function DataTable({
       title={title}
       data={data}
       columns={columns}
+      options={{
+        headerStyle: {
+          padding: "1rem 1.5rem",
+        },
+        rowStyle: {
+          textAlign: "center",
+          padding: "1rem",
+        },
+        actionsCellStyle: {
+          padding: "1rem",
+        },
+        searchFieldStyle: {
+          padding: "0.5rem",
+        },
+      }}
       editable={{
         onRowUpdate: (newData, oldData) => {
+          // Based on material-table documentation for updating row dynamically.
           return new Promise((resolve) => {
             setTimeout(() => {
               resolve();

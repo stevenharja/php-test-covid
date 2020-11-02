@@ -1,7 +1,8 @@
 import React from "react";
 import { SelectInput } from "../components";
-import PropTypes from "prop-types";
 
+// Container for select input
+// Note: This is the container that will be called on the application and not the selectInput container.
 export function SelectInputContainer({ options, changed }) {
   return (
     <SelectInput name="options" onChange={changed}>
@@ -15,8 +16,3 @@ export function SelectInputContainer({ options, changed }) {
     </SelectInput>
   );
 }
-
-SelectInputContainer.propTypes = {
-  options: PropTypes.array,
-  changed: PropTypes.func,
-};

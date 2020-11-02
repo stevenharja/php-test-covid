@@ -1,15 +1,15 @@
 <?php include 'db_connection.php';
 
-$conn = OpenCon("coviddata");
+$conn = OpenCon($databaseName);
 // Delete all records from lga_data to restart the csv upload
-$conn->query("DELETE FROM lga_data");
+$conn->query("DELETE FROM `{$tableName}`");
+// Retrieve content and decode them (as the application will send a POST with the JSON of the CSV)
 $csvData = file_get_contents("php://input");
 $decodedData = json_decode($csvData, true);
 foreach ($decodedData as $item) {
     $keys = array();
     $values = array();
     foreach ($item as $key => $value) {
-        // echo $key . " => " . $value . "<br>";
         $dateRegex = "/date/i";
         array_push($keys, "`{$key}`");
         if (preg_match($dateRegex, $key)) {
@@ -19,15 +19,14 @@ foreach ($decodedData as $item) {
             array_push($values, "'{$value}'");
         }
     }
-    // echo "<br>";
-    $sql = "INSERT INTO `lga_data`(" . implode(",", $keys) . ") VALUES (" . implode(",", $values) . ");";
+    $sql = "INSERT INTO `{$tableName}`(" . implode(",", $keys) . ") VALUES (" . implode(",", $values) . ");";
     if ($conn->query($sql) == true) {
         echo "Successfully added";
     } else {
         echo "Error:" . $conn->error . "<br>";
     };
 }
-$result = $conn->query("SELECT * FROM `lga_data`");
+$result = $conn->query("SELECT * FROM `{$tableName}`");
 echo $result->num_rows;
 
 CloseCon($conn);
