@@ -27,7 +27,7 @@ export const Inner = styled.div`
   align-items: center;
   padding: 1rem 0;
   border-bottom: 3px solid #333333;
-  @media (max-width: 450px) {
+  @media (max-width: 650px) {
     flex-direction: column;
   }
 `;
