@@ -12,7 +12,7 @@ export default function FileInput({
       <File type="file" id={name} {...restProps}>
         {children}
       </File>
-      <Label for={name}>{labelContent}</Label>
+      <Label htmlFor={name}>{labelContent}</Label>
     </React.Fragment>
   );
 }
