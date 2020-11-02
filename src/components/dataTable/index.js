@@ -19,6 +19,7 @@ export default function DataTable({
   dataSent,
   header,
   apiUrl,
+  databaseChanged,
   ...restProps
 }) {
   // Using hooks to manage state of table changes in the front-end.
@@ -57,6 +58,7 @@ export default function DataTable({
                 const index = oldData.tableData.id;
                 dataUpdate[index] = newData;
                 setData([...dataUpdate]);
+                databaseChanged();
               }
             );
           }, 600);

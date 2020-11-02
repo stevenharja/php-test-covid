@@ -161,8 +161,9 @@ export default class App extends Component {
         <DataTable
           title="Data of COVID-19 Based on LGA"
           dataSent={this.state.dbData}
-          header={["LGA", "population"]}
+          header={["LGA", "population", "active", "cases", "rate", "new"]}
           apiUrl={POST_SINGLE_DATA_PATH}
+          databaseChanged={() => this.getDataFromDb()}
         />
       );
     }
