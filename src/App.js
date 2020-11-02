@@ -2,9 +2,7 @@ import React, { Component } from "react";
 import Papa from "papaparse";
 import { HeaderContainer } from "./containers/header";
 import { SelectInputContainer } from "./containers/selectInput";
-import { Main } from "./components";
-import { FileInput } from "./components";
-import { SubmitButton } from "./components";
+import { Main, FileInput, SubmitButton, DataTable } from "./components";
 import * as Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import axios from "axios";
@@ -18,11 +16,12 @@ https://styled-components.com/
 const GET_API_PATH = "http://localhost/php-test-covid/src/api/getData.php";
 const POST_CSV_API_PATH =
   "http://localhost/php-test-covid/src/api/sendCsvData.php";
+const POST_SINGLE_DATA_PATH =
+  "http://localhost/php-test-covid/src/api/updateSingleData.php";
 
 export default class App extends Component {
   state = {
     csvData: null,
-    csvHeader: null,
     fieldData: [
       { field: "active", title: "Number of active COVID-19 cases" },
       { field: "cases", title: "Number of total cases of COVID-19" },
@@ -32,6 +31,7 @@ export default class App extends Component {
     fields: ["active", "cases", "rate", "new"],
     selectedField: "active",
     dbData: null,
+    dbHeader: null,
   };
 
   // Parses the file being uploaded into JSON format. (Only accepts csv)
@@ -44,7 +44,6 @@ export default class App extends Component {
       complete: (results, file) => {
         this.setState({
           csvData: results.data,
-          csvHeader: results.meta.fields,
         });
       },
       header: true,
@@ -96,9 +95,7 @@ export default class App extends Component {
         method: "POST",
         url: POST_CSV_API_PATH,
         data: this.state.csvData,
-      }).then((result) => {
-        console.log(result.data);
-      });
+      }).then((result) => {});
     } else {
       console.error("No CSV file was uploaded in the form.");
     }
@@ -119,7 +116,9 @@ export default class App extends Component {
           dbData.push(JSON.parse(element));
         }
       });
-      this.setState({ dbData });
+      // Get all possible columns from the first element of the array.
+      const dbHeader = Object.keys(dbData[0]);
+      this.setState({ dbData, dbHeader });
     });
   };
 
@@ -130,6 +129,7 @@ export default class App extends Component {
   render() {
     let selectInput;
     let chart;
+    let table;
     if (this.state.dbData) {
       selectInput = (
         <SelectInputContainer
@@ -139,7 +139,7 @@ export default class App extends Component {
       );
     }
 
-    // If an option is selected and there's a csv file || Will update with SQL soon
+    // If an option is selected and there's a csv file
     if (this.state.selectedField && this.state.dbData) {
       const chartData = this.getChartData(
         this.state.dbData,
@@ -188,6 +188,17 @@ export default class App extends Component {
       }
     }
 
+    if (this.state.dbData) {
+      table = (
+        <DataTable
+          title="Data of COVID-19 Based on LGA"
+          dataSent={this.state.dbData}
+          header={["LGA", "population"]}
+          apiUrl={POST_SINGLE_DATA_PATH}
+        />
+      );
+    }
+
     return (
       <React.Fragment>
         <Main>
@@ -210,6 +221,7 @@ export default class App extends Component {
           <Main.Content>
             {selectInput}
             {chart}
+            {table}
           </Main.Content>
         </Main>
       </React.Fragment>
